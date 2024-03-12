@@ -62,7 +62,7 @@ app.include_router(vote.router)
 # Define a simple endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Bismallah, FastAPI!"}
+    return {"message": "Bismallah, Let's Learn FastAPI!"}
     
 
 # @app.get("/sqlalchemy")
