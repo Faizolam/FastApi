@@ -48,6 +48,13 @@ class Post(PostBase):
     class Config:
         from_attributes = True
 
+class PostWithVotes(BaseModel):
+    post: Post
+    votes: int
+
+    class Config:
+        from_attributes = True
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str 
@@ -78,9 +85,10 @@ class TokenData(BaseModel):
 #creating schema for Vote
 class Vote(BaseModel):
     post_id: int
-    dir: conint(le=1)
+    dir: conint(ge=0, le=1)
     # dir: Annotated[int, Field(strict=True, gt=0)]
 
-class PostWithVotes(Post):
-    votes: int
+# class PostWithVotes(Post):
+#     Post:Post
+#     votes: int
     

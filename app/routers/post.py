@@ -42,14 +42,14 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-     # Convert the results to the new model
-    posts_with_votes = [schemas.PostWithVotes(post=post, votes=votes) for post, votes in posts]
+    #  # Convert the results to the new model
+    # posts_with_votes = [schemas.PostWithVotes(post=post, votes=votes) for post, votes in posts]
 
-    # # Convert the results to the new model
-    # posts_with_votes = [
-    #     schemas.PostWithVotes(id=post.id, title=post.title, content=post.content, created_at=post.created_at, owner_id=post.owner_id, owner=post.owner,votes=votes)
-    #     for post, votes in posts
-    # ]
+    # Convert the results to the new model separate keyword argument
+    posts_with_votes = [
+        schemas.PostWithVotes(id=post.id, title=post.title, content=post.content, created_at=post.created_at, owner_id=post.owner_id, owner=post.owner,votes=votes)
+        for post, votes in posts
+    ]
 
     return posts_with_votes
 
