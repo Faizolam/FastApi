@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     DATABASE_PORT:str
     DATABASE_PASSWORD:str
     DATABASE_NAME:str
+    DATABASE_NAME_TEST: str = "default_test"
     DATABASE_USERNAME:str
     SECRET_KEY:str
     ALGORITHM:str
@@ -35,3 +36,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 # print(settings.DATABASE_HOSTNAME)
+
+# class PytestSettings(Settings):
+#     DATABASE_NAME_TEST:str = "default_test"
+
+# pytestSettings = PytestSettings()
