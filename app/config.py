@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     DATABASE_HOSTNAME:str
     DATABASE_PORT:str
     DATABASE_PASSWORD:str
-    # DATABASE_NAME:str
+    DATABASE_NAME:str
     DATABASE_NAME_TEST: str
     DATABASE_USERNAME:str
     SECRET_KEY:str
@@ -35,8 +35,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=DOTENV)
 
 settings = Settings()
-print(settings.DATABASE_NAME_TEST)
-print(settings.DATABASE_PASSWORD)
+# print(settings.DATABASE_HOSTNAME)
 
 # class PytestSettings(Settings):
 #     DATABASE_NAME_TEST:str = "default_test"
