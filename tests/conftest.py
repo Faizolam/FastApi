@@ -41,7 +41,9 @@ def session():
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
+        # command.upgrade("head")
         yield db
+        # command.downgrade("base")
     finally:
         db.close()
 

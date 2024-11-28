@@ -1,7 +1,7 @@
 version: '3'
 services:
   api:
-    # build: .
+    # build: . #if image is not present it will build
     image: faizolam/fastapi
     depends_on: 
       - postgres
@@ -9,7 +9,7 @@ services:
       - 80:8000 #-<port on localhost>:<port on container>
 
     # command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    # env_file:
+    # env_file: #if you don't want to write all of your environment var you can point the .env file.
     #   - ./.env
     environment:
       - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}

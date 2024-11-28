@@ -1,0 +1,8 @@
+pagination
+rate limit
+cors
+auth 
+catching
+availibility
+maintain versioning
+EX; api/v/user

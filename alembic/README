@@ -1,1 +1,327 @@
 Generic single-database configuration.
+## Database Migrations
+* Developers  can track changes to code and rollback code easily with GIT. Why can't we do the same for database models/tables
+* Database migratins allow us to incrementally track changes to database schema and rollback changes to any point in time.
+* We will use a tool called Alembic to make changes to our database.
+* Alembic can also automatically pull database models from Sqlalchemy and generate the proper tables
+
+
+Database migrations are essential in application development, especially when your database schema evolves over time to accommodate new features or requirements. They allow developers to version control database schema changes (such as adding tables, columns, indexes, etc.), ensuring consistency across different environments (development, testing, production).
+
+Here's an overview:
+
+---
+
+### **Why Use Database Migrations?**
+1. **Version Control**: Track changes to your database schema.
+2. **Automation**: Apply schema changes programmatically across environments.
+3. **Consistency**: Ensure all environments have the same database structure.
+4. **Reversibility**: Easily rollback changes in case of errors.
+
+---
+
+### **Popular Migration Tools**
+- **Python**: 
+  - **Alembic** (works with SQLAlchemy)
+  - **Django ORM migrations**
+- **JavaScript/Node.js**:
+  - **Knex.js**
+  - **Sequelize CLI**
+- **Other Frameworks**:
+  - **Flyway**
+  - **Liquibase**
+
+---
+
+### **How Migrations Work**
+1. **Migration Scripts**:
+   - Code files (usually generated automatically) define the changes to be applied.
+2. **Database Change Management**:
+   - Each migration script has an identifier (timestamp, number).
+   - Tools track which migrations have been applied using a metadata table in the database.
+3. **Commands**:
+   - **Upgrade**: Apply changes to update the database schema.
+   - **Downgrade**: Reverse changes, returning to a previous state.
+
+---
+
+### **Alembic with SQLAlchemy**
+If you're using FastAPI or another Python-based framework, **Alembic** is commonly used for migrations.
+
+#### **Setup**
+1. Install Alembic:
+   ```bash
+   pip install alembic
+   ```
+
+2. Initialize Alembic in your project:
+   ```bash
+   alembic init alembic
+   ```
+   This creates an `alembic` directory with a configuration file (`alembic.ini`) and a migrations folder.
+
+3. Configure `alembic.ini` to point to your database:
+   ```ini
+   sqlalchemy.url = postgresql://user:password@localhost/dbname
+   ```
+
+---
+
+#### **Basic Commands**
+1. **Generate a Migration Script**:
+   ```bash
+   alembic revision --autogenerate -m "Add users table"
+   ```
+   - This creates a migration script in the `versions` folder.
+   - If models are properly defined in SQLAlchemy, Alembic will detect schema changes automatically.
+
+2. **Apply Migrations**:
+   ```bash
+   alembic upgrade head
+   ```
+
+3. **Rollback Migrations**:
+   ```bash
+   alembic downgrade -1
+   ```
+
+4. **Check Current Migration State**:
+   ```bash
+   alembic current
+   ```
+
+---
+
+### **Best Practices**
+1. **Version Control**: Add migration files to your version control system (e.g., Git).
+2. **Review Auto-generated Scripts**: Autogeneration might miss custom logic or constraints.
+3. **Test Migrations**: Always test migrations in a staging or local environment before production.
+4. **Avoid Data Loss**: Be cautious when dropping tables or columns; consider backup strategies.
+
+
+Understanding the **Alembic directory structure** is crucial for effectively managing database migrations in Python projects. Let's break it down step-by-step.
+
+---
+
+### **Alembic Directory Structure**
+When you initialize Alembic (`alembic init alembic`), it creates the following structure:
+
+```
+alembic/
+├── env.py
+├── script.py.mako
+├── versions/
+│   └── (empty initially)
+alembic.ini
+```
+
+Each of these files and folders has a specific purpose. Let’s discuss them in detail:
+
+---
+
+#### **1. `alembic.ini`**
+This is the **configuration file** for Alembic. It defines the database connection and other global settings.
+
+**Key Sections:**
+- `sqlalchemy.url`: Specifies the database URL.
+- `script_location`: Points to the `alembic/` directory where migration scripts and settings are stored.
+- Logging and output options.
+
+**Example Configuration:**
+```ini
+[alembic]
+script_location = alembic
+
+sqlalchemy.url = postgresql://username:password@localhost/dbname
+
+[loggers]
+keys = root, sqlalchemy, alembic
+```
+
+**How It Works:**
+- When you run Alembic commands (e.g., `alembic upgrade`), this file is used to locate the database and the migration directory.
+
+---
+
+#### **2. `env.py`**
+This is the **core script** that configures Alembic’s runtime behavior.
+
+**Key Responsibilities:**
+- Connects to the database using `sqlalchemy.url`.
+- Sets up the migration context.
+- Includes the logic for `autogenerate` (detecting model changes).
+
+**Main Sections:**
+- **Database Connection Setup**:
+  This is where you link Alembic to your SQLAlchemy models.
+
+  **Example**:
+  ```python
+  from my_app.models import Base
+  from sqlalchemy import engine_from_config
+  from sqlalchemy.orm import sessionmaker
+
+  config = context.config
+
+  # Database connection
+  connectable = engine_from_config(
+      config.get_section(config.config_ini_section),
+      prefix="sqlalchemy.",
+      poolclass=pool.NullPool,
+  )
+
+  def run_migrations_online():
+      with connectable.connect() as connection:
+          context.configure(connection=connection, target_metadata=Base.metadata)
+          with context.begin_transaction():
+              context.run_migrations()
+  ```
+
+- **Target Metadata**:
+  The `target_metadata` variable links Alembic to your SQLAlchemy models. If you use `Base` (from SQLAlchemy ORM), it ensures that Alembic knows about your database schema.
+
+---
+
+#### **3. `script.py.mako`**
+This is a **template file** used for generating new migration scripts. Alembic uses this template to create migration scripts in the `versions/` folder.
+
+**Example Snippet**:
+When a new migration script is created (e.g., `alembic revision`), Alembic fills placeholders in this template with the migration details.
+
+**Contents of `script.py.mako`**:
+```python
+"""${message}
+Revision ID: ${up_revision}
+Revises: ${down_revision}
+Create Date: ${create_date}
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# Revision identifiers, used by Alembic.
+revision = '${up_revision}'
+down_revision = ${repr(down_revision)}
+branch_labels = None
+depends_on = None
+
+def upgrade():
+    pass
+
+def downgrade():
+    pass
+```
+
+---
+
+#### **4. `versions/` Directory**
+This is where all your **migration scripts** are stored. Each script represents a specific change to your database schema.
+
+**Structure of a Migration Script**:
+```python
+"""Add a users table
+Revision ID: 123456789abc
+Revises: None
+Create Date: 2024-11-20 12:00:00
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# Revision identifiers, used by Alembic.
+revision = '123456789abc'
+down_revision = None
+branch_labels = None
+depends_on = None
+
+def upgrade():
+    # Code to apply this migration
+    op.create_table(
+        'users',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('username', sa.String(50), nullable=False),
+        sa.Column('email', sa.String(100), unique=True, nullable=False),
+    )
+
+def downgrade():
+    # Code to reverse this migration
+    op.drop_table('users')
+```
+
+**Key Elements**:
+- `upgrade()`: Code to apply changes (e.g., add tables, columns).
+- `downgrade()`: Code to reverse the changes (e.g., drop tables).
+
+---
+
+### **How Alembic Works**
+1. **Initialization**:
+   - Run `alembic init alembic` to set up the directory structure.
+
+2. **Autogenerate Migrations**:
+   - Alembic can automatically detect changes in SQLAlchemy models and generate migration scripts:
+     ```bash
+     alembic revision --autogenerate -m "Add users table"
+     ```
+
+3. **Apply Migrations**:
+   - To apply changes to the database:
+     ```bash
+     alembic upgrade head
+     ```
+
+4. **Rollback Migrations**:
+   - To undo the last migration:
+     ```bash
+     alembic downgrade -1
+     ```
+
+---
+
+### **Example Workflow**
+Suppose you're building a blogging app with an initial schema and later want to add a new `comments` table.
+
+1. **Step 1: Initialize Alembic**:
+   ```bash
+   alembic init alembic
+   ```
+
+2. **Step 2: Define Your Models**:
+   ```python
+   from sqlalchemy import Column, Integer, String, ForeignKey
+   from sqlalchemy.ext.declarative import declarative_base
+
+   Base = declarative_base()
+
+   class BlogPost(Base):
+       __tablename__ = 'blog_posts'
+       id = Column(Integer, primary_key=True)
+       title = Column(String, nullable=False)
+
+   class Comment(Base):
+       __tablename__ = 'comments'
+       id = Column(Integer, primary_key=True)
+       content = Column(String, nullable=False)
+       post_id = Column(Integer, ForeignKey('blog_posts.id'))
+   ```
+
+3. **Step 3: Generate a Migration**:
+   ```bash
+   alembic revision --autogenerate -m "Add comments table"
+   ```
+
+   This creates a script in `versions/` with the necessary `upgrade()` and `downgrade()` functions.
+
+4. **Step 4: Apply the Migration**:
+   ```bash
+   alembic upgrade head
+   ```
+
+   The `comments` table is now added to your database.
+
+---
+
+### **Best Practices**
+- **Organize Models**: Ensure `target_metadata` in `env.py` includes all your models.
+- **Review Scripts**: Always review autogenerated migration scripts for correctness.
+- **Test Migrations**: Use a staging environment to test migrations before deploying to production.

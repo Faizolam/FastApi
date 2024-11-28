@@ -42,6 +42,8 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
+    # contains(search): provide some kind of string, and it'll just search for the entire tetle of a post. And I'll see if the search keywords ate anywhere in the post title, it doesn't have to match completely it has to be somewhere in the post.
+
     #  # Convert the results to the new model
     # posts_with_votes = [schemas.PostWithVotes(post=post, votes=votes) for post, votes in posts]
 
@@ -51,6 +53,9 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
         for post, votes in posts
     ]
 
+    # Get user specific posts
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    # return posts
     return posts_with_votes
 
 #***********************************create_posts**************************
@@ -113,6 +118,8 @@ def get_posts(id: int, db: Session = Depends(get_db), current_user: int = Depend
 
 
 #***********************************delete_post**************************
+# Ensure that your get_current_user function returns a User object if it’s meant to return the entire user rather than just the user ID. current_user: userModel.User = Depends(oauth2.get_current_user)  other wise use current_user: int = Depends(oauth2.get_current_user)
+
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id),))
@@ -143,11 +150,11 @@ def update_post(id: int, updatedPost: schemas.PostCreate, db: Session = Depends(
     # print(post_query)
     post = post_query.first()
 
-    ## if post exist
+    ## if post not exist
     if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id:{id} dose not exist")
     
-    ## If we did post found then check user authorized or not to delete the post
+    ## If we did post found then check user authorized or not to update the post
     if post.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform requested action")
     

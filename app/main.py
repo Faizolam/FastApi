@@ -27,11 +27,15 @@ from .config import settings
 
 # Create a FastAPI instance
 app = FastAPI()
-
+#@ CORS
+#~ Cross Origin Resource Sharing(CORS) allows you to make requests from a web browser on one domain to a server on a different domain
+#~By default our API will only allow web browsers running on the same domain as our server to make requests to it.
+#~ ebay.com ----CORS will🚫-----> API(google.com)
+#~ ebay(ebay.com) ----CORS will✅----->API(ebay.com)
 # To run this in any website console you have to give CORS permission like below is giving google.com
 # fetch('http://127.0.0.1:8000/').then(res => res.json()).then(console.log)
 # origins = ["https://www.google.com"]
-
+#! If you want to set up a public API so that everyone can access it, then your origins would just be a wild(*)card. So this means every single domain or every single origin. But if your API is being configured for a specific web app, then you definitrly want to make sure that you provide a strict list of origins. So just whatever domain your web app is running on so that no one else can accidentally reach our application for some reason or another. It's just security best practices to really narrow down the scope of the origins that can actually access your API. For now i'm just going to leave this as set to everyone can access, when we actually go to deploy this it will little bit easier form a testing purpose.
 origins = ["*"]
 
 app.add_middleware(
